@@ -1,0 +1,6 @@
+# system=Linux 5.15.148-tegra aarch64
+# prism=0.2.0-dev build=Release compiler=Ubuntu Clang 22.1.3 (++20260402073210+4250a0fc5de9-1~exp1~20260402073326.61)
+# sigma_revision=6e9a1ef526365474738d80d4eb71fd945a13abd6 normal_policy=scalar_cached threads=1 seed=20261021 stream=54 warmups=3
+# backend=fftw3 noise_method=2 H=0.7 variance=1 sigma=0.25 embedding=2 rounded=0
+provider,n,repetitions,setup_seconds,normal_fill_seconds,normal_ns_per_value,pipeline_seconds,pipeline_seconds_per_call,last_fill_checksum,reconstruction_relative_error
+pcg,2,100,0.000606702,1.73450098e-05,86.7250492,0.000416266004,4.16266004e-06,1.0050133935874858,1.62863617e-16

@@ -9,6 +9,7 @@ jobs:
         fftw: ["ON", "OFF"]
         sanitize: ["OFF"]
         shared: ["OFF"]
+        sigma: ["OFF"]
         include:
           - compiler: gcc
             fftw: "ON"
@@ -18,8 +19,20 @@ jobs:
             fftw: "ON"
             sanitize: "OFF"
             shared: "ON"
+          - compiler: gcc
+            fftw: "ON"
+            sanitize: "OFF"
+            shared: "OFF"
+            sigma: "ON"
     steps:
       - uses: actions/checkout@v4
+      - name: Checkout pinned optional SIGMA
+        if: matrix.sigma == 'ON'
+        uses: actions/checkout@v4
+        with:
+          repository: StraylightRunMOO/SIGMA
+          ref: 6e9a1ef526365474738d80d4eb71fd945a13abd6
+          path: build-external/sigma
       - run: sudo apt-get update && sudo apt-get install -y libfftw3-dev pkg-config
       - run: python3 tools/check_docs.py
       - name: Configure
@@ -31,6 +44,9 @@ jobs:
           -DBUILD_SHARED_LIBS=${{ matrix.shared }}
           -DPRISM_SANITIZE=${{ matrix.sanitize || 'OFF' }}
           -DPRISM_WARNINGS_AS_ERRORS=ON
+          -DPRISM_BUILD_EXPERIMENTS=ON
+          -DPRISM_ENABLE_SIGMA=${{ matrix.sigma || 'OFF' }}
+          -DPRISM_SIGMA_SOURCE_DIR=${{ github.workspace }}/build-external/sigma
       - run: cmake --build build --parallel 2
       - run: ctest --test-dir build -L prism --output-on-failure
         env:

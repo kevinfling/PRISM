@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.2.0-dev — unreleased
+
+- Caller-owned PCG RNG with explicit seeds/streams, 53-bit uniforms, and cached
+  Box–Muller normals; PCG attribution and Apache-2.0 license retained.
+- Swappable caller-owned normal-source callbacks and a deterministic covariance
+  transform API; the PCG convenience path preserves its previous draw sequence.
+- Optional, header-hash-pinned SIGMA scalar normal adapter with explicit seed and
+  logical-sample policy, checked chunk invariance, and no upstream types or flags
+  exposed to consumers. Buffered/SIMD upstream sequence limitations are audited.
+- Covariance square-root and lag-interval checks at lengths 257,511,513, plus
+  serial/1/2/4/7-thread checks and normal-fill/end-to-end smoke benchmarks.
+- Stable fGn lag covariance with explicit Hurst parameter and increment variance.
+- Dense Cholesky, direct-DFT circulant reference, and optional FFTW circulant
+  samplers with immutable plans, private workspaces, checked capacities, no
+  PRISM sampling-time allocations, and mandatory factorization diagnostics.
+- Explicit embedding rejection and opt-in, reported small-eigenvalue correction;
+  no hidden regularization, automatic fallback, or Toeplitz/DCT substitution.
+- Optional fixed-q ensemble experiment with 20 seeded replicates, zero/white/fGn
+  controls, E=1,4,16,64,256, fixed amplitude, analytic moments, raw CSV, and a
+  descriptive Monte Carlo uncertainty report.
+- Covariance/oracle, allocation failure, and concurrent logical-stream tests;
+  installed-consumer checks include the new headers and symbols.
+- CMake and shared-library minor series moves to 0.2. Numeric package metadata is
+  0.2.0; the public version string is 0.2.0-dev until a release is prepared.
+
+Deterministic decomposition remains the default. This work checks numerical
+covariance and fixed-linear identities; it does not demonstrate denoising,
+source separation, inference calibration, or an ensemble benefit over the
+noise-free deterministic operator. Other backend adapters, auxiliary operators,
+and a production ensemble API remain outside this development scope.
+
+
 ## v0.1 — 0.1.0 (2026-10-21)
 
 ### Implemented

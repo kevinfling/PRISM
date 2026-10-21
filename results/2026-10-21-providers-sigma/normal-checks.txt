@@ -1,0 +1,1 @@
+SIGMA draws=202000 mean=-0.0028823302 second=1.0046439 third=-0.007765791 fourth=3.0430243 max_cdf_z=2.53024

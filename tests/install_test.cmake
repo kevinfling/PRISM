@@ -3,7 +3,8 @@ set(prefix "${PRISM_BINARY_DIR}/consumer-prefix")
 set(consumer "${PRISM_BINARY_DIR}/consumer-build")
 check_command("${CMAKE_COMMAND}" --install "${PRISM_BINARY_DIR}" --prefix "${prefix}" --config "${PRISM_CONFIG}")
 check_command("${CMAKE_COMMAND}" -S "${PRISM_SOURCE_DIR}/tests/consumer" -B "${consumer}"
-    "-DCMAKE_PREFIX_PATH=${prefix}" "-DCMAKE_C_COMPILER=${PRISM_C_COMPILER}")
+    "-DCMAKE_PREFIX_PATH=${prefix}" "-DCMAKE_C_COMPILER=${PRISM_C_COMPILER}"
+    -DPRISM_REQUESTED_VERSION=0.2)
 check_command("${CMAKE_COMMAND}" --build "${consumer}" --config "${PRISM_CONFIG}")
 check_command("${CMAKE_CTEST_COMMAND}" --test-dir "${consumer}" -C "${PRISM_CONFIG}" --output-on-failure)
 # Compile and run the complete C example printed in the README against the installed library.
@@ -24,13 +25,13 @@ file(MAKE_DIRECTORY "${documented}")
 file(WRITE "${documented}/main.c" "${code}")
 check_command("${CMAKE_COMMAND}" -S "${PRISM_SOURCE_DIR}/tests/consumer" -B "${documented}/build"
     "-DCMAKE_PREFIX_PATH=${prefix}" "-DCMAKE_C_COMPILER=${PRISM_C_COMPILER}"
-    "-DPRISM_EXAMPLE_SOURCE=${documented}/main.c")
+    "-DPRISM_EXAMPLE_SOURCE=${documented}/main.c" -DPRISM_REQUESTED_VERSION=0.2)
 check_command("${CMAKE_COMMAND}" --build "${documented}/build" --config "${PRISM_CONFIG}")
 check_command("${CMAKE_CTEST_COMMAND}" --test-dir "${documented}/build" -C "${PRISM_CONFIG}" --output-on-failure)
-# The 0.1 package must not advertise compatibility with the 0.2 API.
+# The 0.2 package must not advertise compatibility with the 0.3 API.
 execute_process(COMMAND "${CMAKE_COMMAND}" -S "${PRISM_SOURCE_DIR}/tests/consumer"
     -B "${PRISM_BINARY_DIR}/incompatible-consumer" "-DCMAKE_PREFIX_PATH=${prefix}"
-    "-DCMAKE_C_COMPILER=${PRISM_C_COMPILER}" -DPRISM_REQUESTED_VERSION=0.2
+    "-DCMAKE_C_COMPILER=${PRISM_C_COMPILER}" -DPRISM_REQUESTED_VERSION=0.3
     RESULT_VARIABLE incompatible OUTPUT_VARIABLE output ERROR_VARIABLE error)
 if(incompatible EQUAL 0 OR NOT error MATCHES "version")
     message(FATAL_ERROR "Expected incompatible package-version rejection: ${output}\n${error}")

@@ -1,0 +1,7 @@
+normal_provider=sigma sigma_revision=6e9a1ef526365474738d80d4eb71fd945a13abd6 policy=scalar_cached
+PRISM 0.2.0-dev n=64 dx=1 t=16 q=3 sigma=0.25 seeds=20 master_seed=20261021 backend=fftw3 noise_method=2 FFTW=fftw-3.3.8 planner=ESTIMATE|UNALIGNED
+E uses nested prefixes within a replicate. Distinct logical stream IDs; no independence proof.
+zero embedding=126 min_eigenvalue=0 rounded=0
+white embedding=126 min_eigenvalue=1 rounded=0
+fgn_h03 embedding=126 min_eigenvalue=0.11439979447303772 rounded=0
+fgn_h07 embedding=126 min_eigenvalue=0.57785502995855254 rounded=0

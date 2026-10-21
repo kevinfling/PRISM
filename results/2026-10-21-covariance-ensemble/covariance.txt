@@ -1,0 +1,10 @@
+covariance method=0 n=32 H=0.1 draws=8192 max_selected_entry_z=1.8113 relative_Frobenius=0.057387 predicted_rms_relative_Frobenius=0.054862
+covariance method=0 n=32 H=0.3 draws=8192 max_selected_entry_z=1.8039 relative_Frobenius=0.061619 predicted_rms_relative_Frobenius=0.060063
+covariance method=0 n=32 H=0.5 draws=8192 max_selected_entry_z=1.3065 relative_Frobenius=0.062857 predicted_rms_relative_Frobenius=0.063469
+covariance method=0 n=32 H=0.7 draws=8192 max_selected_entry_z=0.4805 relative_Frobenius=0.050772 predicted_rms_relative_Frobenius=0.053236
+covariance method=0 n=32 H=0.9 draws=8192 max_selected_entry_z=1.2550 relative_Frobenius=0.024261 predicted_rms_relative_Frobenius=0.024070
+covariance method=2 n=128 H=0.1 draws=8192 max_selected_entry_z=2.0458 relative_Frobenius=0.109084 predicted_rms_relative_Frobenius=0.107704
+covariance method=2 n=128 H=0.3 draws=8192 max_selected_entry_z=0.8693 relative_Frobenius=0.117349 predicted_rms_relative_Frobenius=0.118416
+covariance method=2 n=128 H=0.5 draws=8192 max_selected_entry_z=1.7022 relative_Frobenius=0.124723 predicted_rms_relative_Frobenius=0.125487
+covariance method=2 n=128 H=0.7 draws=8192 max_selected_entry_z=1.0394 relative_Frobenius=0.100706 predicted_rms_relative_Frobenius=0.100761
+covariance method=2 n=128 H=0.9 draws=8192 max_selected_entry_z=1.1725 relative_Frobenius=0.029248 predicted_rms_relative_Frobenius=0.030218

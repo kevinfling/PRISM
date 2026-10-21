@@ -1,0 +1,3 @@
+pinned upstream cached normal scalar=[-0.72621913824478546,-0.2111969182319598,0.22162270150359331] mixed=[-0.72621913824478546,0.22162270150359331,0.52277168775601457]
+pinned upstream selected_uniform_simd=1 scalar_buffer_equal=0
+pinned upstream selected SIMD uniform chunks produce a different sequence

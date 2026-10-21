@@ -1,9 +1,10 @@
 # Contributing to PRISM
 
-PRISM v0.1 implements the deterministic operators specified in the README.
+PRISM v0.2.0 development adds covariance sampling and an opt-in ensemble
+experiment to the deterministic operators specified in the README.
 Keep changes small enough to review against that specification. The public
-API is `include/prism.h`; implementation is in `src/`. Use the repository's
-`.clang-format` style and preserve copyright and license notices.
+API is in `include/prism.h` and `include/prism/`; implementation is in `src/`.
+Use the repository's `.clang-format` style and preserve copyright and license notices.
 
 ## Checks
 
@@ -11,7 +12,8 @@ Build with strict warnings, run the complete suite, then use a separate build
 for reference-only and sanitizer checks:
 
 ```sh
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DPRISM_WARNINGS_AS_ERRORS=ON
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DPRISM_WARNINGS_AS_ERRORS=ON \
+    -DPRISM_BUILD_EXPERIMENTS=ON
 cmake --build build --parallel
 ctest --test-dir build -L prism --output-on-failure
 cmake -S . -B build-reference -DPRISM_ENABLE_FFTW=OFF -DCMAKE_BUILD_TYPE=Release
@@ -24,7 +26,7 @@ ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 UBSAN_OPTIONS=halt_on_error=1 \
 ```
 
 The installed-consumer test checks the exported CMake package. The clean-source
-check exercises only files Git would include in the initial commit, so ignored
+check exercises only files Git would include in a commit, so ignored
 local files cannot mask a missing dependency. When Python 3 is available, CTest
 also runs the documentation checker in both the working tree and source snapshot.
 The CI configuration also includes shared-library and
@@ -36,6 +38,13 @@ Use analytic cases or a separately implemented oracle rather than duplicating
 the implementation. A reconstruction-only check can miss incorrect individual
 bands. Failure-path tests should check capacities, partial overlap, cleanup,
 and whether result metadata is usable after an error.
+
+The optional SIGMA integration requires the exact consumed headers and license
+specified in [the dependency audit](docs/SIGMA.md). Test enabled and disabled
+builds and preserve scalar/chunk sequence policy. The installed consumer must
+not require upstream headers. Reproducible logical-sample keys and a defined
+aggregation order are separate requirements. Normal/CDF smoke tests and timing
+measurements do not establish statistical independence or application benefit.
 
 ## Markdown mathematics
 
@@ -56,7 +65,7 @@ by the Markdown stage before it reaches the renderer.
 Document sample positions, transform normalization, units, boundaries, and the
 residual before introducing a new operator. Separate exact-arithmetic identities
 from numerical measurements. A separately written test oracle is an internal
-cross-check, not independent external validation. Future stochastic code needs
+cross-check, not independent external validation. Stochastic code needs
 explicit seeds, covariance definitions, and controls; do not add hidden RNG state.
 
 For a research claim, define the task, null hypothesis, primary metric, minimum
@@ -72,7 +81,7 @@ uncontrolled smoke session is not a comparative performance result.
 
 ## Compatibility and review
 
-Public changes during the 0.1 series should preserve the documented API where
+Public changes during the 0.2 series should preserve the documented API where
 practical. Later pre-1.0 minor releases may break compatibility; record those
 changes in the changelog. Keep optional backend details out of public headers.
 Plans must outlive workspaces; each concurrent execution uses a distinct

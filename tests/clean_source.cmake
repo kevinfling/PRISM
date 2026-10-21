@@ -15,7 +15,10 @@ foreach(path IN LISTS files)
 endforeach()
 check_command("${CMAKE_COMMAND}" -S "${snapshot}/source" -B "${snapshot}/build"
     "-DCMAKE_C_COMPILER=${PRISM_C_COMPILER}" -DCMAKE_BUILD_TYPE=Release
-    "-DPRISM_ENABLE_FFTW=${PRISM_FFTW}" -DPRISM_WARNINGS_AS_ERRORS=ON)
+    "-DPRISM_ENABLE_FFTW=${PRISM_FFTW}"
+    "-DPRISM_ENABLE_SIGMA=${PRISM_SIGMA}"
+    "-DPRISM_SIGMA_SOURCE_DIR=${PRISM_SIGMA_SOURCE_DIR}" -DPRISM_WARNINGS_AS_ERRORS=ON
+    -DPRISM_BUILD_EXPERIMENTS=ON)
 check_command("${CMAKE_COMMAND}" --build "${snapshot}/build" --parallel 2)
 check_command("${CMAKE_CTEST_COMMAND}" --test-dir "${snapshot}/build"
-    -R "^(contracts|properties|documentation|installed_consumer)$" --output-on-failure)
+    -R "^(contracts|properties|documentation|installed_consumer|stochastic_covariance|stochastic_concurrency|innovation_providers|covariance_awkward_lengths|ensemble_identity|ensemble_identity_fftw|ensemble_identity_sigma)$" --output-on-failure)

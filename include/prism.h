@@ -4,9 +4,9 @@
 #define PRISM_H
 #include <stddef.h>
 #define PRISM_VERSION_MAJOR 0
-#define PRISM_VERSION_MINOR 1
+#define PRISM_VERSION_MINOR 2
 #define PRISM_VERSION_PATCH 0
-#define PRISM_VERSION "0.1.0"
+#define PRISM_VERSION "0.2.0-dev"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,7 +18,8 @@ typedef enum {
     PRISM_ENOMEM,
     PRISM_EBACKEND,
     PRISM_ENUMERIC,
-    PRISM_EOVERFLOW
+    PRISM_EOVERFLOW,
+    PRISM_ECOVARIANCE
 } prism_status;
 typedef enum { PRISM_BANDS_FIXED, PRISM_BANDS_HEAT_TELESCOPE } prism_mode;
 typedef struct prism_plan prism_plan;

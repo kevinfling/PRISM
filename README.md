@@ -1,16 +1,19 @@
 # PRISM
 
 **Partitioned Reconstruction and Inference of Spectral Modes** is a C11 library
-for one-dimensional, deterministic DCT filter banks. **v0.1 (0.1.0)** implements fixed
-spectral bands and differences of heat smoothers, with caller-selected parameters,
-explicit components, and a mandatory residual.
+for one-dimensional, deterministic DCT filter banks. **v0.2.0-dev** adds opt-in
+seeded covariance sampling, caller-provided innovation sources, an optional
+pinned SIGMA normal adapter, and a fixed-linear ensemble research driver to the
+v0.1 filter banks. Fixed bands and differences of heat smoothers retain
+caller-selected parameters, explicit components, and a mandatory residual.
+This is a development snapshot, not a published v0.2.0 release.
 
 For those fixed parameters, the components are linear filtered views of the input.
 Their weights sum to one, so they reconstruct the input in exact arithmetic.
 The current tests measure how closely the implementation realizes that identity.
 They do not establish physical source recovery, denoising benefit, or statistical
 inference. The word *inference* in the project name describes a research direction;
-this release estimates no latent model, probabilities, or uncertainty.
+the implementation estimates no latent model, probabilities, or calibrated uncertainty.
 
 [Thesis and null hypotheses](#thesis-and-null-hypotheses) ·
 [Build](#build-and-install) · [Example](#example) ·
@@ -34,15 +37,16 @@ We use two distinct null hypotheses:
    $`\Delta`$ and the minimum useful effect $`\delta\gt 0`$ before final evaluation:
    $`H_0:\mathbb E[\Delta]\le\delta`$. For a loss, reverse the sign consistently.
    The task, baseline, primary metric, compute budget, split, tuning procedure,
-   and uncertainty calculation must be fixed in the experiment protocol. v0.1 has
+   and uncertainty calculation must be fixed in the experiment protocol. PRISM has
    not run such an application experiment or rejected this null.
 2. **Fixed-linear perturbation null:** independent, zero-mean additive trials
    passed through the same fixed linear operator preserve its deterministic
    expectation and add estimator variance. This is a conditional mathematical
    result, derived in [§10](#10-the-fixed-linear-ensemble-identity-research-only),
-   rather than an empirical discovery. It motivates a later experiment checking
-   whether any nonlinear or adaptive extension provides a task-specific benefit.
-   v0.1 implements no stochastic ensemble.
+   rather than an empirical discovery. The opt-in v0.2 development experiment
+   checks this identity with zero, white, and fGn controls; it evaluates no
+   application benefit. Nonlinear or adaptive extensions require separate tasks
+   and protocols.
 
 An inability to reject an application null would not prove equivalence. A
 successful reconstruction test also cannot reject a source-separation or
@@ -69,13 +73,18 @@ cmake --install build --prefix "$PWD/install"
 Use `-DPRISM_ENABLE_FFTW=OFF` to build with only the quadratic reference transform;
 that configuration needs no third-party transform library or pkg-config.
 The reference backend is intended for small inputs and validation.
+The [SIGMA setup and audit](docs/SIGMA.md) describes its separately supplied,
+hash-pinned dependency; the default build requires no SIGMA source.
 
 | CMake option | Default | Effect |
 | --- | --- | --- |
 | `PRISM_ENABLE_FFTW` | ON | Build the FFTW backend and require system FFTW3 |
+| `PRISM_ENABLE_SIGMA` | OFF | Enable the pinned optional normal-source adapter |
+| `PRISM_SIGMA_SOURCE_DIR` | empty | Source directory with the audited SIGMA headers/license; required only when enabled |
 | `PRISM_BUILD_TESTS` | ON for a standalone build | Build and register PRISM checks |
 | `PRISM_BUILD_EXAMPLES` | ON for a standalone build | Build `prism_example` |
-| `PRISM_BUILD_BENCHMARKS` | ON for a standalone build | Build the POSIX benchmark |
+| `PRISM_BUILD_BENCHMARKS` | ON for a standalone build | Build the POSIX decomposition and innovation benchmarks |
+| `PRISM_BUILD_EXPERIMENTS` | OFF | Build the POSIX fixed-linear research driver and register its checks |
 | `PRISM_WARNINGS_AS_ERRORS` | OFF | Treat project warnings as errors with GCC/Clang |
 | `PRISM_SANITIZE` | OFF | Instrument with ASan/UBSan using GCC/Clang |
 | `BUILD_SHARED_LIBS` | OFF | Select shared rather than static library output |
@@ -86,13 +95,13 @@ Tests, examples, and benchmarks default to OFF when PRISM is included with
 An installed consumer uses:
 
 ```cmake
-find_package(PRISM 0.1 CONFIG REQUIRED)
+find_package(PRISM 0.2 CONFIG REQUIRED)
 target_link_libraries(my_program PRIVATE prism::prism)
 ```
 
 Point `CMAKE_PREFIX_PATH` at the installation prefix. Public headers support C++
 inclusion; the implementation is C11. This is a pre-1.0 API: compatibility is
-scoped to the 0.1 series, and later minor versions may change the API or ABI.
+scoped to the 0.2 series, and later minor versions may change the API or ABI.
 
 For instrumented checks:
 
@@ -378,7 +387,7 @@ For $`k\gt 0`$,
 ```
 
 The ratio tends to one at low relative frequencies, but generally differs near
-the top of the spectrum. v0.1 uses $`\lambda_k`$, **not**
+the top of the spectrum. PRISM uses $`\lambda_k`$, **not**
 $`\lambda_k^{\mathrm{FD}}`$. Sharing a cosine basis does not make these two heat
 operators identical. Neither boundary model is automatically suitable for every
 data-generating process.
@@ -430,7 +439,7 @@ r(\alpha x+\beta\boldsymbol1)=\alpha r(x)+\beta\boldsymbol1.
 ```
 
 Parameter selection based on x would generally make the overall procedure
-nonlinear; v0.1 performs no such selection. If $`x=s_1+s_2`$, then
+nonlinear; PRISM performs no such selection. If $`x=s_1+s_2`$, then
 $`x=(s_1+h)+(s_2-h)`$ for any h, so observations alone cannot identify the two
 sources. A spectral partition supplies a representation choice, not the missing
 source assumptions. Global bands cannot in general separate sources occupying
@@ -522,7 +531,8 @@ and [thread-safety requirements](https://www.fftw.org/fftw3_doc/Thread-safety.ht
 
 ### 10. The fixed-linear ensemble identity (research only)
 
-This section motivates future work and describes no v0.1 execution path.
+This identity is checked by the optional [research driver](experiments/ensemble.c);
+it is not an ensemble mode of `prism_decompose`.
 Let S be a fixed linear smoother, q a fixed nonnegative integer,
 $`T=(I-S)^q`$ (with $`T=I`$ when q=0), r a fixed input, and $`\eta_e`$ independent random vectors with mean
 zero and common finite covariance $`\Sigma`$. For a noise amplitude $`\sigma`$
@@ -561,7 +571,198 @@ comparison. This identity does not rule out benefits for those procedures; they
 need separately specified experiments. Nor does DCT-filtering white noise
 produce an arbitrary target Toeplitz covariance: its covariance has the form
 $`C^{\mathsf T}\mathop{\mathrm{diag}}(v_k)C`$ for chosen spectral variances $`v_k`$.
-Exact fGn sampling and covariance validation remain future work.
+The opt-in sampler below constructs the specified Toeplitz target through a
+checked covariance factorization or circulant embedding.
+
+### 11. Target covariance and Gaussian sampling
+
+The opt-in [noise API](include/prism/noise.h) accepts stationary target lags
+$`\gamma(0),\ldots,\gamma(n-1)`$ and defines the Toeplitz matrix
+$`K_{ij}=\gamma(|i-j|)`$. For unit-spaced fractional Gaussian increments,
+
+```math
+\gamma_H(0)=v,\qquad
+\gamma_H(k)=\frac v2\left[(k+1)^{2H}-2k^{2H}+(k-1)^{2H}\right],\quad k\ge1,
+\qquad 0\lt H\lt1,\ v\ge0.
+```
+
+Here v is increment variance, not a spectrum normalization inferred from H.
+At H=1/2, K=vI. An fBm sampling interval h with amplitude a requires explicitly
+choosing $`v=a^2h^{2H}`$. The implementation returns increments, not fBm levels.
+The [sampling specification](docs/STOCHASTIC.md#covariance-definition-and-scale)
+derives the stable even-binomial evaluation used instead of cancellation-prone
+power subtraction.
+
+For dense Cholesky, construct $`K=LL^{\mathsf T}`$ and return $`Lz`$ for ideal
+$`z\sim N(0,I_n)`$. Computed negative pivots are rejected. Zero pivots require
+zero corresponding remainders; no implicit jitter is added. Setup costs O(n³),
+sampling O(n²), and the stored factor n² doubles.
+
+For circulant embedding, set m=2(n−1), or m=1 when n=1, and mirror the lags:
+$`c=(\gamma(0),\ldots,\gamma(n-1),\gamma(n-2),\ldots,\gamma(1))`$.
+For n=1 use only the lag-zero entry; n=2 has no appended mirror tail.
+With the unnormalized complex DFT matrix
+$`F_{kj}=e^{-2\pi\mathrm{i}kj/m}`$, eigenvalues $`\lambda=Fc`$, and
+$`\lambda_k\ge0`$, define
+
+```math
+G=\frac1m F^*\mathop{\mathrm{diag}}(\lambda)F,\qquad
+B=\frac1m F^*\mathop{\mathrm{diag}}(\sqrt\lambda)F.
+```
+
+Since $`FF^*=mI`$, $`BB^{\mathsf T}=G`$. For ideal independent Gaussian z of
+length m, return the first n entries of Bz. The corresponding block of G is K,
+so the returned covariance is K in exact arithmetic. Forward DFT, square-root
+weighting, and inverse DFT divided by m implement B. This uses a circulant
+embedding of the target, rather than treating the DCT as a Toeplitz diagonalizer.
+The reference DFT costs O(m²); optional FFTW supplies O(m log m) transform
+algorithms. Plans and workspaces use O(m) PRISM storage for this path.
+
+A valid Toeplitz target need not have a PSD **chosen embedding**. For example,
+$`\gamma=(1.05,0.9,0.62)`$ has a positive definite 3×3 target, while its mirror
+embedding has eigenvalues 3.47, 0.43, −0.13, 0.43. Embedding rejection therefore
+does not establish invalidity of the target. There is no automatic enlargement
+or fallback.
+
+The default eigenvalue tolerance is zero. An explicit caller tolerance τ in
+[0,1) permits a negative computed eigenvalue to be rounded to zero only when
+$`-\lambda_k\le\tau\max_j|\lambda_j|`$. Diagnostics report the minimum/maximum
+computed eigenvalues, imaginary roundoff, corrected-bin count with conjugate
+multiplicities, and maximum correction. Such rounding changes the target:
+
+```math
+\Delta G=\frac1mF^*\mathop{\mathrm{diag}}(\delta\lambda)F,\qquad
+\|\Delta G\|_2=\max_k|\delta\lambda_k|.
+```
+
+Cropping cannot increase this exact-arithmetic spectral-norm bound. It does not
+include other floating-point errors. The copied target lags remain the requested
+lags, not the corrected covariance. A corrected plan is not an exact-target
+sampler. See [full factorization and error contracts](docs/STOCHASTIC.md).
+
+### 12. Seeded execution and statistical checks
+
+A caller-owned [PCG RNG](include/prism/rng.h) takes an explicit seed and logical
+stream ID. Two sequential 32-bit words produce a 53-bit [0,1) uniform. For two
+such uniforms U,V, Box–Muller returns
+
+```math
+R=\sqrt{-2\log(1-U)},\qquad \Theta=2\pi V,\qquad
+(Z_1,Z_2)=(R\cos\Theta,R\sin\Theta).
+```
+
+The second value is cached; chunking draws preserves the sequence. Integer
+outputs are specified exactly; normals depend on libm. Separate RNGs and
+workspaces permit concurrent sampling with one immutable plan. Logical stream
+IDs make scheduling reproducible; different IDs alone do not prove independence.
+There is no clock seeding or global RNG. Finite-grid pseudorandom normals and
+floating-point factorizations approximate the ideal Gaussian construction;
+“exact covariance” does not promise literal continuous Gaussian samples or
+bitwise portability. Sampling allocates no PRISM memory after setup.
+
+For M ideal independent, zero-mean Gaussian draws, define the known-zero-mean
+second-moment estimate $`\widehat K=M^{-1}\sum_{s=1}^M y_sy_s^{\mathsf T}`$.
+Gaussian fourth moments give
+
+```math
+\mathbb E\widehat K=K,\qquad
+\mathop{\mathrm{Var}}(\widehat K_{ij})=
+\frac{K_{ii}K_{jj}+K_{ij}^2}{M},\qquad
+\mathbb E\|\widehat K-K\|_F^2=
+\frac{(\mathop{\mathrm{tr}}K)^2+\mathop{\mathrm{tr}}(K^2)}{M}.
+```
+
+Tests use those scales for selected-entry six-standard-error checks and a
+separate broad full-matrix second-moment check. They also compare an independent
+full cosine-matrix circulant square root, published PCG integer vectors,
+allocation failures, capacities, and serial/concurrent logical-stream execution.
+Finite fixed-seed checks do not prove the assumed independence or exactness.
+
+The optional experiment uses q=3, heat time 16, dx=1, n=64, fixed σ=0.25,
+20 seeded replicates, E=1,4,16,64,256, and zero/white/fGn controls. With
+$`A=TKT^{\mathsf T}`$, ideal Gaussian noise gives
+
+```math
+D_E=\|z_E-Tx\|_2^2,\qquad
+\mathbb E D_E=\frac{\sigma^2}E\mathop{\mathrm{tr}}A,\qquad
+\mathop{\mathrm{Var}}(D_E)=\frac{2\sigma^4}{E^2}\mathop{\mathrm{tr}}(A^2).
+```
+
+This follows by diagonalizing A and using variance two for squared independent
+standard normals. A direct cosine matrix supplies the prediction independently
+of the transform implementation. The [fixed protocol](docs/STOCHASTIC.md#fixed-linear-protocol-and-interpretation)
+specifies input, streams, nested-prefix coupling, raw CSV fields, timings, and
+uncertainty limits. Enable it with `-DPRISM_BUILD_EXPERIMENTS=ON` and run
+`build/experiments/prism_ensemble_experiment fftw` or `reference`.
+
+The report's approximate t intervals describe variation across seeded
+replicates, assuming effective independence. They do not calibrate physical
+source uncertainty. Reduced perturbation error with larger E compares noisy
+estimates with each other; deterministic Tx already has zero perturbation error.
+This experiment supplies no application evaluation or ensemble advantage over Tx.
+
+### 13. Innovation boundary and optional SIGMA source
+
+The [innovation interface](include/prism/innovation.h) separates a caller-owned
+normal source from the covariance transformation. A descriptor supplies state,
+its byte extent, and a fill callback; `prism_rng_source` adapts PCG.
+`prism_noise_sample_from` stages a source's innovations before producing a
+sample. `prism_noise_transform` instead applies the square root to explicit
+caller-provided innovations, with no RNG consumption. Required innovation count
+is n for dense Cholesky and the embedding length m for a circulant plan.
+
+For any supplied vector z with mean μ and covariance V and the square-root
+operator R (including cropping when needed),
+
+```math
+mathbb E[Rz]=Rmu,qquad mathop{mathrm{Cov}}(Rz)=RVR^{mathsf T}.
+```
+
+For an uncorrected exact target factor, centered, identity-covariance innovations
+give the target second moments; Gaussian innovations additionally give the ideal
+Gaussian field. Optional eigenvalue correction changes that target as in §11. Finite-value
+validation cannot verify those distributional assumptions for an arbitrary
+callback. Source, state, and output must be disjoint, callbacks must not allocate,
+and no sampling-time planning occurs. Callback failures may consume source
+state; covariance sampling still leaves the caller's sample unchanged.
+
+The opt-in [SIGMA adapter](include/prism/sigma.h) pins revision
+`6e9a1ef526365474738d80d4eb71fd945a13abd6` and checks consumed-header/license
+hashes. It uses caller-owned xoshiro256** state and scalar cached polar normals:
+for independent ideal uniforms, form u=2U−1, v=2V−1, reject until 0<a=u²+v²<1,
+and return
+
+```math
+(Z_1,Z_2)=(u,v)sqrt{-2log(a)/a}.
+```
+
+One value is cached. The adapter fills buffers by scalar calls so chunking
+preserves that sequence, including cached draws. It exposes no SIGMA types or
+headers to consumers and imports no dependency optimization flags.
+The [complete seed/state specification and upstream audit](docs/SIGMA.md)
+explain why upstream buffered/SIMD sequence equivalence is not assumed.
+Different stream keys do not prove independent random variables. Assign keys
+to logical samples for scheduling invariance, and separately define aggregation
+order if requiring bitwise repeatability. No cross-platform normal-value
+bitwise identity is promised.
+
+Tests compare word transitions with an independent oracle, check scalar/chunked
+normals, raw moments and fixed-grid CDF values, and compare serial scheduling
+with 1,2,4,7 threads. At lengths 257,511,513, all innovation basis vectors recover
+the FFTW sampler's numerical square root. Boundary-row and diagonal inner
+products are checked against dense Toeplitz entries before Monte Carlo
+lag-covariance checks. Those 4,096-draw checks report approximate pointwise 95%
+intervals from the Gaussian fourth-moment variance in §12; they are not
+simultaneous confidence bands. The reference-only build additionally checks a
+dense n=513, H=0.7 factor column. These finite checks supply no all-size,
+independence, or calibrated application-uncertainty guarantee.
+
+The [innovation benchmark](benchmarks/bench_innovations.c) separates normal-fill
+cost from correlated-noise sampling plus perturbation and full decomposition.
+Measured throughput is not evidence of better decomposition. The optional
+adapter uses scalar normal draws; its measurements are not SIMD normal results.
+Other distributions, online-statistics adapters, antithetic/common-random-number
+comparisons, and auxiliary operators remain unimplemented.
 
 ## Evidence and release status
 
@@ -572,13 +773,14 @@ Exact fGn sampling and covariance validation remain future work.
 | Tests meet the chosen reconstruction tolerance | Local test observations | Finite test domain, compilers, and machine; no all-input guarantee |
 | Capacity/overlap checks and sanitizer checks pass | Source checks and executed tests | Not a formal safety proof or exhaustive race analysis |
 | Same parameters specify the same real operator | Mathematical definition | No cross-platform bitwise reproducibility claim |
-| Denoising or application advantage | Open hypothesis | No held-out application evaluation in v0.1 |
+| Denoising or application advantage | Open hypothesis | No held-out application evaluation |
+| Covariance and fixed-linear ensemble checks | Specified construction, internal oracles, seeded simulation | Floating-point and PRNG limitations; no application or all-input guarantee |
 | Comparative speed or new mathematics | Not established or claimed | Smoke timings and elementary identities are insufficient evidence |
 
-This release establishes a tested implementation of the specified filter banks.
-It has no adaptive partition selection, local frames, stochastic sampling,
-fractional calculus, cepstrum, RTS model, EMD/envelope sifting, or uncertainty
-quantification API. Reconstruction and component energy do not demonstrate
+This development snapshot implements the specified filter banks and opt-in
+covariance samplers. It has no adaptive partition selection, local frames,
+fractional calculus, cepstrum, RTS model, EMD/envelope sifting, production ensemble
+decomposition, or calibrated uncertainty quantification API. Reconstruction and component energy do not demonstrate
 separation quality, denoising benefit, or physical interpretability.
 
 The [validation record](docs/VALIDATION.md) distinguishes test coverage and local
@@ -603,15 +805,23 @@ optimality, or cross-platform performance claim. New performance claims require
 matched configurations, repeated sessions, raw measurements, and uncertainty.
 
 [CONTRIBUTING.md](CONTRIBUTING.md) describes checks and evidence expectations;
-[CHANGELOG.md](CHANGELOG.md) records the initial release scope. The research
-directions discussed above remain unimplemented.
+[CHANGELOG.md](CHANGELOG.md) distinguishes initial release history from current
+development. Other backend adapters, auxiliary operators, and adaptive models
+remain later work.
 
 ## License and attribution
 
-PRISM's own source is [MIT licensed](LICENSE). Copyright (c) 2026 Kevin Fling.
+PRISM's code is [MIT licensed](LICENSE), Copyright (c) 2026 Kevin Fling, except
+`src/rng.c`, which adapts Melissa O'Neill's PCG code under
+[Apache-2.0](LICENSES/Apache-2.0.txt), Copyright 2014 Melissa O'Neill. See
+[attribution](docs/STOCHASTIC.md#attribution).
 DCT filter banks, heat semigroups, and the reconstruction identity are established
 techniques; the references above provide context for the normalization and
 boundary conventions. No original mathematical result is claimed here.
+
+SIGMA is a separately supplied optional MIT dependency, Copyright (c) 2025
+Kevin Fling. Its license is installed with enabled builds; the
+[adapter audit](docs/SIGMA.md) records the pin and supported scalar API.
 
 FFTW is an optional, separately installed dependency. Its default distribution
 uses **GPL version 2 or later**, and alternative licenses are available from its

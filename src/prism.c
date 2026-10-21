@@ -271,6 +271,8 @@ const char *prism_status_string(int status) {
         return "nonfinite data or numerical range exceeded";
     case PRISM_EOVERFLOW:
         return "size exceeds supported range";
+    case PRISM_ECOVARIANCE:
+        return "covariance factorization or circulant embedding rejected";
     default:
         return "unknown status";
     }

@@ -1,0 +1,16 @@
+dense n=513 H=0.7 first square-root column agrees with target column
+circulant n=257 H=0.1 embedding=512 max_factor_error=3.67294e-16 max_lag_z=2.71081 outside_pointwise95=8/257
+circulant n=257 H=0.3 embedding=512 max_factor_error=3.00964e-16 max_lag_z=2.37097 outside_pointwise95=14/257
+circulant n=257 H=0.5 embedding=512 max_factor_error=4.44089e-16 max_lag_z=2.92543 outside_pointwise95=14/257
+circulant n=257 H=0.7 embedding=512 max_factor_error=3.5878e-16 max_lag_z=2.89887 outside_pointwise95=6/257
+circulant n=257 H=0.9 embedding=512 max_factor_error=3.77608e-16 max_lag_z=2.8624 outside_pointwise95=19/257
+circulant n=511 H=0.1 embedding=1020 max_factor_error=3.76639e-16 max_lag_z=3.41572 outside_pointwise95=26/511
+circulant n=511 H=0.3 embedding=1020 max_factor_error=6.93628e-16 max_lag_z=3.02925 outside_pointwise95=28/511
+circulant n=511 H=0.5 embedding=1020 max_factor_error=4.44089e-16 max_lag_z=3.20114 outside_pointwise95=30/511
+circulant n=511 H=0.7 embedding=1020 max_factor_error=6.01005e-16 max_lag_z=3.34343 outside_pointwise95=30/511
+circulant n=511 H=0.9 embedding=1020 max_factor_error=4.05515e-16 max_lag_z=3.58148 outside_pointwise95=35/511
+circulant n=513 H=0.1 embedding=1024 max_factor_error=4.51318e-16 max_lag_z=3.31525 outside_pointwise95=22/513
+circulant n=513 H=0.3 embedding=1024 max_factor_error=5.07689e-16 max_lag_z=3.27477 outside_pointwise95=21/513
+circulant n=513 H=0.5 embedding=1024 max_factor_error=4.44089e-16 max_lag_z=3.23294 outside_pointwise95=29/513
+circulant n=513 H=0.7 embedding=1024 max_factor_error=3.11207e-16 max_lag_z=3.24896 outside_pointwise95=29/513
+circulant n=513 H=0.9 embedding=1024 max_factor_error=3.34393e-16 max_lag_z=2.3078 outside_pointwise95=3/513

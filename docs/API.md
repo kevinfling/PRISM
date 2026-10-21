@@ -1,6 +1,9 @@
 # API and ownership
 
-`include/prism.h` is the complete interface. `prism/backend.h`,
+`include/prism.h` is the deterministic decomposition interface.
+`prism/innovation.h`, `prism/rng.h`, and `prism/noise.h` add the stochastic module,
+specified in [Covariance sampling](STOCHASTIC.md). `prism/sigma.h` exposes the
+[optional pinned normal-source adapter](SIGMA.md). `prism/backend.h`,
 `prism/partition.h`, and `prism/heat.h` are convenience includes.
 
 ## Lifetimes
@@ -82,8 +85,10 @@ possible allocation inside external libraries.
 ## Release and error reference
 
 `PRISM_VERSION` and its MAJOR/MINOR/PATCH macros identify the header release.
-The initial API is pre-1.0. CMake compatibility and shared-library versioning are
-scoped to the 0.1 series; later minor versions may change API or ABI.
+The development API is pre-1.0. `PRISM_VERSION` is `0.2.0-dev`; CMake package
+metadata uses numeric `0.2.0` and does not signify a published release.
+CMake compatibility and shared-library versioning are scoped to the 0.2 series;
+later minor versions may change API or ABI.
 
 | Status | Checked condition |
 | --- | --- |
@@ -93,6 +98,7 @@ scoped to the 0.1 series; later minor versions may change API or ABI.
 | `PRISM_ENOMEM` | A PRISM-owned allocation failed |
 | `PRISM_EBACKEND` | Backend construction/execution failed or returned invalid state |
 | `PRISM_ENUMERIC` | Nonfinite input, nonfinite transform/output/diagnostic, or a checked numerical range failure |
+| `PRISM_ECOVARIANCE` | Noise target factorization or fixed circulant embedding rejected |
 | `PRISM_EOVERFLOW` | A checked size product or backend dimension exceeds its supported range |
 
 A backend may propagate any PRISM error code. The built-in FFTW workspace limits
