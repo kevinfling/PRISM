@@ -1,0 +1,6 @@
+function(check_command)
+    execute_process(COMMAND ${ARGV} RESULT_VARIABLE status OUTPUT_VARIABLE output ERROR_VARIABLE error)
+    if(NOT status EQUAL 0)
+        message(FATAL_ERROR "Command failed (${status}): ${ARGV}\n${output}\n${error}")
+    endif()
+endfunction()

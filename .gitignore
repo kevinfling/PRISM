@@ -1,0 +1,17 @@
+/build*/
+/install*/
+/.cache/
+/compile_commands.json
+/.claude/
+/.agents/
+/.codex/
+/.aws/
+/AGENTS.md
+/CLAUDE.md
+
+# Local planning notes are not part of the published project.
+/PLAN.md
+
+# Python documentation-check artifacts.
+__pycache__/
+*.py[cod]

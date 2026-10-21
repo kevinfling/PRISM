@@ -1,0 +1,8 @@
+if(UNIX)
+    add_executable(bench_prism bench_prism.c)
+    target_link_libraries(bench_prism PRIVATE prism::prism)
+    prism_checks(bench_prism)
+endif()
+if(TARGET bench_prism)
+    target_compile_definitions(bench_prism PRIVATE PRISM_BENCH_BUILD_TYPE="$<CONFIG>")
+endif()

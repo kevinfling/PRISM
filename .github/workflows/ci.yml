@@ -1,0 +1,38 @@
+name: PRISM correctness
+on: [push, pull_request]
+jobs:
+  correctness:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+        fftw: ["ON", "OFF"]
+        sanitize: ["OFF"]
+        shared: ["OFF"]
+        include:
+          - compiler: gcc
+            fftw: "ON"
+            sanitize: "ON"
+            shared: "OFF"
+          - compiler: clang
+            fftw: "ON"
+            sanitize: "OFF"
+            shared: "ON"
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y libfftw3-dev pkg-config
+      - run: python3 tools/check_docs.py
+      - name: Configure
+        env:
+          CC: ${{ matrix.compiler }}
+        run: >-
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          -DPRISM_ENABLE_FFTW=${{ matrix.fftw }}
+          -DBUILD_SHARED_LIBS=${{ matrix.shared }}
+          -DPRISM_SANITIZE=${{ matrix.sanitize || 'OFF' }}
+          -DPRISM_WARNINGS_AS_ERRORS=ON
+      - run: cmake --build build --parallel 2
+      - run: ctest --test-dir build -L prism --output-on-failure
+        env:
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1
